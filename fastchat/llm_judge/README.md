@@ -1,5 +1,5 @@
 # LLM Judge
-| [Paper](https://arxiv.org/abs/2306.05685) | [Demo](https://huggingface.co/spaces/lmsys/mt-bench) | 
+| [Paper](https://arxiv.org/abs/2306.05685) | [Demo](https://huggingface.co/spaces/lmsys/mt-bench) | [Leaderboard](https://chat.lmsys.org/?leaderboard) |
 
 In this package, you can use MT-bench questions and prompts to evaluate your models with LLM-as-a-judge.
 
@@ -13,6 +13,7 @@ In this package, you can use MT-bench questions and prompts to evaluate your mod
 git clone https://github.com/lm-sys/FastChat.git
 cd FastChat
 pip install -e .
+pip install openai anthropic ray
 ```
 
 ## Review Pre-Generated Model Answers and Judgments
@@ -176,3 +177,17 @@ The next release will include:
 - All code
     - computing agreement between judges
     - others
+
+## Citation
+
+If you find the repository helpful for your study, please consider citing the following [paper](https://arxiv.org/abs/2306.05685): "Judging LLM-as-a-judge with MT-Bench and Chatbot Arena":
+```
+@misc{zheng2023judging,
+      title={Judging LLM-as-a-judge with MT-Bench and Chatbot Arena}, 
+      author={Lianmin Zheng and Wei-Lin Chiang and Ying Sheng and Siyuan Zhuang and Zhanghao Wu and Yonghao Zhuang and Zi Lin and Zhuohan Li and Dacheng Li and Eric. P Xing and Hao Zhang and Joseph E. Gonzalez and Ion Stoica},
+      year={2023},
+      eprint={2306.05685},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}
+```

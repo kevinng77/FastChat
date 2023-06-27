@@ -243,6 +243,8 @@ async def get_gen_params(
         sep_style=SeparatorStyle(conv["sep_style"]),
         sep=conv["sep"],
         sep2=conv["sep2"],
+        stop_str=conv["stop_str"],
+        stop_token_ids=conv["stop_token_ids"],
     )
 
     if isinstance(messages, str):
@@ -261,12 +263,7 @@ async def get_gen_params(
 
         # Add a blank message for the assistant.
         conv.append_message(conv.roles[1], None)
-
-        is_chatglm = "chatglm" in model_name.lower()
-        if is_chatglm:
-            prompt = conv.messages[conv.offset :]
-        else:
-            prompt = conv.get_prompt()
+        prompt = conv.get_prompt()
 
     if max_tokens is None:
         max_tokens = 512
@@ -281,7 +278,7 @@ async def get_gen_params(
         "stream": stream,
     }
 
-    if stop is None:
+    if not stop:
         gen_params.update(
             {"stop": conv.stop_str, "stop_token_ids": conv.stop_token_ids}
         )
