@@ -350,6 +350,7 @@ async def show_available_models():
 @app.post("/v1/chat/completions", dependencies=[Depends(check_api_key)])
 async def create_chat_completion(request: ChatCompletionRequest):
     """Creates a completion for the chat message"""
+    logger.warning(str(request.dict()))
     error_check_ret = await check_model(request)
     if error_check_ret is not None:
         return error_check_ret

@@ -49,7 +49,7 @@ from fastchat.utils import build_logger, pretty_print_semaphore
 GB = 1 << 30
 
 worker_id = str(uuid.uuid4())[:6]
-logger = build_logger("model_worker", f"model_worker_{worker_id}.log")
+logger = logging.getLogger(__name__)
 global_counter = 0
 
 model_semaphore = None
@@ -105,7 +105,9 @@ class ModelWorker:
             self.context_len = self.model.config.max_position_embeddings
         else:
             self.context_len = 2048
-
+        if self.context_len is None:
+            self.context_len = 4096
+        self.context_len = 4096
         # generate_stream
         is_chatglm = "chatglm" in str(type(self.model)).lower()
         if is_chatglm:
@@ -197,6 +199,7 @@ class ModelWorker:
         return {"conv": self.conv}
 
     def generate_stream_gate(self, params):
+        logger.warning(str(params))
         try:
             for output in self.generate_stream_func(
                 self.model,
