@@ -25,6 +25,37 @@ class GptqConfig:
         metadata={"help": "Whether to apply the activation order GPTQ heuristic"},
     )
 
+def load_autogptq_quantized(model_name, device):
+    try:
+        from auto_gptq import AutoGPTQForCausalLM
+    except Exception as err:
+        raise ValueError("Please install auto_gptq")
+    print(f"loading autogpt model from {model_name}, loading fast tokenizer..")
+    tokenizer = AutoTokenizer.from_pretrained(model_name, 
+                                              use_fast=True)
+    model_basename = None
+    for ext in ["*.pt", "*.safetensors"]:
+        matched_result = sorted(Path(model_name).glob(ext))
+        if len(matched_result) > 0:
+            model_basename = matched_result[-1].name
+            model_basename = model_basename[:-len(ext[1:])]
+            use_safetensors = ext == "*.safetensors"
+            print(f"loading model: {model_basename}; use fasettensor: {use_safetensors}")
+            break
+    if model_basename is None:
+        raise ValueError(f"No quantized model found in path {model_name}")
+    if device != "cuda:0":
+        print(f"TODO: only support single gpu for loading autogptq model now. \
+            but get device == {device}, set device to cuda:0"
+    )
+    device = "cuda:0"
+    
+    model = AutoGPTQForCausalLM.from_quantized(model_name, 
+                                           model_basename=model_basename,
+                                           use_safetensors=use_safetensors,
+                                           device="cuda:0",
+                                           use_triton=False)
+    return model, tokenizer 
 
 def load_gptq_quantized(model_name, gptq_config: GptqConfig, device):
     print("Loading GPTQ quantized model...")

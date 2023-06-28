@@ -77,6 +77,7 @@ class ModelWorker:
         load_8bit=False,
         cpu_offloading=False,
         gptq_config=None,
+        load_autogpt=None
     ):
         self.controller_addr = controller_addr
         self.worker_addr = worker_addr
@@ -87,6 +88,7 @@ class ModelWorker:
         self.device = device
 
         logger.info(f"Loading the model {self.model_names} on worker {worker_id} ...")
+
         self.model, self.tokenizer = load_model(
             model_path,
             device,
@@ -95,6 +97,7 @@ class ModelWorker:
             load_8bit,
             cpu_offloading,
             gptq_config,
+            load_autogpt=load_autogpt
         )
         self.conv = get_conversation_template(model_path)
         if self.tokenizer.pad_token == None:
@@ -108,7 +111,7 @@ class ModelWorker:
             self.context_len = 2048
         if self.context_len is None:
             self.context_len = 4096
-        self.context_len = 4096
+
         # generate_stream
         is_chatglm = "chatglm" in str(type(self.model)).lower()
         is_falcon = "rwforcausallm" in str(type(self.model)).lower()
@@ -469,5 +472,6 @@ if __name__ == "__main__":
         args.load_8bit,
         args.cpu_offloading,
         gptq_config,
+        args.load_autogpt
     )
     uvicorn.run(app, host=args.host, port=args.port, log_level="info")

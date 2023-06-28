@@ -24,13 +24,14 @@ from transformers import (
     T5Tokenizer,
 )
 
-from fastchat.modules.gptq import GptqConfig, load_gptq_quantized
+from fastchat.modules.gptq import GptqConfig, load_gptq_quantized, load_autogptq_quantized
 from fastchat.conversation import Conversation, get_conv_template
 from fastchat.model.compression import load_compress_model
 from fastchat.model.monkey_patch_non_inplace import (
     replace_llama_attn_with_non_inplace_operations,
 )
 from fastchat.utils import get_gpu_memory
+import logging
 
 
 class BaseModelAdapter:
@@ -48,6 +49,7 @@ class BaseModelAdapter:
             use_fast=self.use_fast_tokenizer,
             revision=revision,
         )
+        print("loading model kwargs: ", from_pretrained_kwargs)
         model = AutoModelForCausalLM.from_pretrained(
             model_path, low_cpu_mem_usage=True, **from_pretrained_kwargs
         )
@@ -121,6 +123,7 @@ def load_model(
     gptq_config: Optional[GptqConfig] = None,
     revision: str = "main",
     debug: bool = False,
+    load_autogpt: bool = False,
 ):
     """Load a model from Hugging Face."""
 
@@ -163,7 +166,6 @@ def load_model(
             )
     else:
         raise ValueError(f"Invalid device: {device}")
-
     if cpu_offloading:
         # raises an error on incompatible platforms
         from transformers import BitsAndBytesConfig
@@ -188,12 +190,19 @@ def load_model(
                 torch_dtype=kwargs["torch_dtype"],
                 revision=revision,
             )
+    elif load_autogpt:
+        print("Loading Autogpt...")
+        return load_autogptq_quantized(
+            model_path,
+            device=device,
+        )
     elif gptq_config and gptq_config.wbits < 16:
         return load_gptq_quantized(
             model_path,
             gptq_config,
             device=device,
         )
+
     kwargs["revision"] = revision
 
     # Load model
@@ -283,7 +292,11 @@ def add_model_args(parser):
         action="store_true",
         help="Whether to apply the activation order GPTQ heuristic",
     )
-
+    parser.add_argument(
+        "--load_autogpt",
+        action="store_true",
+        help="Whether to load autogpt from an exist folder, which includes the quanized config json file.",
+    )
 
 def remove_parent_directory_name(model_path):
     """Remove parent directory name."""
@@ -306,6 +319,8 @@ class VicunaAdapter(BaseModelAdapter):
         model = AutoModelForCausalLM.from_pretrained(
             model_path,
             low_cpu_mem_usage=True,
+            # device_map="auto",
+            # load_in_8bit=True,
             **from_pretrained_kwargs,
         )
         self.raise_warning_for_old_weights(model)
